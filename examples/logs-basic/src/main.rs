@@ -1,12 +1,12 @@
 use opentelemetry_appender_tracing::layer;
-use opentelemetry_sdk::logs::SdkLoggerProvider;
+use opentelemetry_sdk::trace::SdkTracerProvider;
 use opentelemetry_sdk::Resource;
 use tracing::error;
 use tracing_subscriber::{prelude::*, EnvFilter};
 
 fn main() {
-    let exporter = opentelemetry_stdout::LogExporter::default();
-    let provider: SdkLoggerProvider = SdkLoggerProvider::builder()
+    let exporter = opentelemetry_stdout::SpanExporter::default();
+    let provider: SdkTracerProvider = SdkTracerProvider::builder()
         .with_resource(
             Resource::builder()
                 .with_service_name("log-appender-tracing-example")
@@ -48,6 +48,8 @@ fn main() {
         .with(fmt_layer)
         .init();
 
-    error!(name: "my-event-name", target: "my-system", event_id = 20, user_name = "otel", user_email = "otel@opentelemetry.io", message = "This is an example message");
+    let outer_span = tracing::info_span!("Outer span");
+    { outer_span.enter(); }
+
     let _ = provider.shutdown();
 }
